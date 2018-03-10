@@ -21,8 +21,8 @@ typedef struct WordListItem
 /** Contain a variable amount of items. */
 typedef struct
 {
-	TWordListItem *Pointer_List_Head; //!< The first list element.
-	TWordListItem *Pointer_List_Tail; //!< The last list element.
+	TWordListItem *Pointer_First_Item; //!< The list head.
+	TWordListItem *Pointer_Last_Item; //!< The list tail.
 	int Items_Count; //!< How many elements currently in the list.
 } TWordList;
 
