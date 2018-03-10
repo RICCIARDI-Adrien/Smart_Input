@@ -6,12 +6,52 @@
 #include <Log.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <wchar.h>
 #include <Word_List.h>
 
 //-------------------------------------------------------------------------------------------------
 // Public functions
 //-------------------------------------------------------------------------------------------------
+TWordList *WordListGetWordsFromPrefix(TWordList *Pointer_List_Base, wchar_t *Pointer_String_Word_Prefix)
+{
+	TWordList *Pointer_List;
+	TWordListItem *Pointer_List_Base_Item;
+	int i, Prefix_Word_Length;
+	
+	assert(Pointer_List_Base != NULL);
+	assert(Pointer_String_Word_Prefix != NULL);
+
+	// Initialize the new list
+	Pointer_List = malloc(sizeof(TWordList));
+	if (Pointer_List == NULL)
+	{
+		LOG_ERROR("Could not allocate list memory.");
+		return NULL;
+	}
+	Pointer_List->Items_Count = 0;
+	
+	// Cache prefix word length to avoid computing it several times
+	Prefix_Word_Length = wcslen(Pointer_String_Word_Prefix);
+	LOG_DEBUG("Searched prefix : '%ls', prefix length : %d.", Pointer_String_Word_Prefix, Prefix_Word_Length);
+	
+	// Search in the whole base list for words beginning with the same prefix
+	Pointer_List_Base_Item = Pointer_List_Base->Pointer_First_Item;
+	for (i = 0; i < Pointer_List_Base->Items_Count; i++)
+	{
+		// Is the word matching (do not take characters case into account) ?
+		if (wcsncasecmp(Pointer_List_Base_Item->Pointer_String_Word, Pointer_String_Word_Prefix, Prefix_Word_Length) == 0)
+		{
+			LOG_DEBUG("Found match with word '%ls'.", Pointer_List_Base_Item->Pointer_String_Word);
+			// TODO
+		}
+		
+		Pointer_List_Base_Item = Pointer_List_Base_Item->Pointer_Next_Item;
+	}
+	
+	return Pointer_List;
+}
+
 TWordList *WordListLoadFromFile(char *Pointer_String_File_Name)
 {
 	FILE *Pointer_File;

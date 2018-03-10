@@ -42,7 +42,7 @@ void WordListInitialize(TWordList *Pointer_List);
 int WordListAddSortedWord(TWordList *Pointer_List, wchar_t *Pointer_String_Word);
 
 /** TODO */
-int WordListGetWordsFromPrefix(TWordList *Pointer_List_Base, wchar_t *Pointer_String_Word_Prefix, TWordList *Pointer_List_Found_Words);
+TWordList *WordListGetWordsFromPrefix(TWordList *Pointer_List_Base, wchar_t *Pointer_String_Word_Prefix);
 
 /** Append an item at the end of the specified list.
  * @param Pointer_List The list to append item to.

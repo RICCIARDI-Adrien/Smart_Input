@@ -12,7 +12,7 @@
 //-------------------------------------------------------------------------------------------------
 int main(void)
 {
-	TWordList *Pointer_List_All_Words;
+	TWordList *Pointer_List_All_Words, *Pointer_List_Words;
 	
 	setlocale(LC_ALL, "");
 	
@@ -20,4 +20,15 @@ int main(void)
 	if (Pointer_List_All_Words == NULL) return EXIT_FAILURE;
 	
 	WordListDisplay(Pointer_List_All_Words);
+	
+	Pointer_List_Words = WordListGetWordsFromPrefix(Pointer_List_All_Words, L"a");
+	WordListDisplay(Pointer_List_Words);
+	Pointer_List_Words = WordListGetWordsFromPrefix(Pointer_List_All_Words, L"test");
+	WordListDisplay(Pointer_List_Words);
+	Pointer_List_Words = WordListGetWordsFromPrefix(Pointer_List_All_Words, L"introuvable");
+	WordListDisplay(Pointer_List_Words);
+	Pointer_List_Words = WordListGetWordsFromPrefix(Pointer_List_All_Words, L"sal");
+	WordListDisplay(Pointer_List_Words);
+
+	return 0;
 }
