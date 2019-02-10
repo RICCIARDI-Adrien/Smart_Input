@@ -24,6 +24,7 @@ typedef struct
 	TWordListItem *Pointer_First_Item; //!< The list head.
 	TWordListItem *Pointer_Last_Item; //!< The list tail.
 	int Items_Count; //!< How many elements currently in the list.
+	int Is_Items_String_Word_Shared; //!< Tell whether the "Pointer_String_Word" field of each item is shared with another list, so it must not be freed when the list is destroyed.
 } TWordList;
 
 //-------------------------------------------------------------------------------------------------
@@ -43,6 +44,20 @@ int WordListAddSortedWord(TWordList *Pointer_List, wchar_t *Pointer_String_Word)
 
 /** TODO */
 TWordList *WordListGetWordsFromPrefix(TWordList *Pointer_List_Base, wchar_t *Pointer_String_Word_Prefix);
+
+/** Copy an item into a new one.
+ * @param Pointer_Source_List_Item The item to copy from.
+ * @param Is_String_Word_Duplicated Set to 1 to also copy the word string content. Set to 0 to share the pointer. Do not forget to indicate that the list is shared if sharing the pointer.
+ * @return NULL if an error occurred,
+ * @return a valid pointer on the duplicated item on success.
+ */
+TWordListItem *WordListDuplicateItem(TWordListItem *Pointer_Source_List_Item, int Is_String_Word_Duplicated);
+
+/** Free a list resources.
+ * @param Pointer_List The list to delete.
+ * @param Is_String_Word_Removed Set to 1 to also free the "Pointer_String_Word" field in list items (useful for a deep-copied list), set to 0 to keep the strings (useful for a list that shares the words with another one).
+ */
+void WordListRemoveList(TWordList *Pointer_List/*, int Is_String_Word_Removed*/);
 
 /** Append an item at the end of the specified list.
  * @param Pointer_List The list to append item to.

@@ -21,12 +21,19 @@ int main(void)
 	
 	WordListDisplay(Pointer_List_All_Words);
 	
+	LOG_DEBUG("a");
 	Pointer_List_Words = WordListGetWordsFromPrefix(Pointer_List_All_Words, L"a");
 	WordListDisplay(Pointer_List_Words);
+	
+	LOG_DEBUG("test");
 	Pointer_List_Words = WordListGetWordsFromPrefix(Pointer_List_All_Words, L"test");
 	WordListDisplay(Pointer_List_Words);
+	
+	LOG_DEBUG("introuvable");
 	Pointer_List_Words = WordListGetWordsFromPrefix(Pointer_List_All_Words, L"introuvable");
 	WordListDisplay(Pointer_List_Words);
+	
+	LOG_DEBUG("sal");
 	Pointer_List_Words = WordListGetWordsFromPrefix(Pointer_List_All_Words, L"sal");
 	WordListDisplay(Pointer_List_Words);
 

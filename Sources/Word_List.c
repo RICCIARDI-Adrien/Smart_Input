@@ -16,7 +16,7 @@
 TWordList *WordListGetWordsFromPrefix(TWordList *Pointer_List_Base, wchar_t *Pointer_String_Word_Prefix)
 {
 	TWordList *Pointer_List;
-	TWordListItem *Pointer_List_Base_Item;
+	TWordListItem *Pointer_List_Base_Item, *Pointer_List_Duplicated_Item;
 	int i, Prefix_Word_Length;
 	
 	assert(Pointer_List_Base != NULL);
@@ -43,13 +43,55 @@ TWordList *WordListGetWordsFromPrefix(TWordList *Pointer_List_Base, wchar_t *Poi
 		if (wcsncasecmp(Pointer_List_Base_Item->Pointer_String_Word, Pointer_String_Word_Prefix, Prefix_Word_Length) == 0)
 		{
 			LOG_DEBUG("Found match with word '%ls'.", Pointer_List_Base_Item->Pointer_String_Word);
-			// TODO
+			
+			// Duplicate the item but not the word string to save some memory
+			Pointer_List_Duplicated_Item = WordListDuplicateItem(Pointer_List_Base_Item, 0);
+			if (Pointer_List_Duplicated_Item == NULL)
+			{
+				LOG_ERROR("Failed to duplicate item word '%ls'.", Pointer_List_Base_Item->Pointer_String_Word);
+				return NULL;
+			}
+			
+			WordListAppendItem(Pointer_List, Pointer_List_Duplicated_Item);
 		}
 		
 		Pointer_List_Base_Item = Pointer_List_Base_Item->Pointer_Next_Item;
 	}
 	
 	return Pointer_List;
+}
+
+TWordListItem *WordListDuplicateItem(TWordListItem *Pointer_Source_List_Item, int Is_String_Word_Duplicated)
+{
+	TWordListItem *Pointer_Destination_List_Item;
+	
+	assert(Pointer_Source_List_Item != NULL);
+	
+	// Allocate next word item
+	Pointer_Destination_List_Item = malloc(sizeof(TWordListItem));
+	if (Pointer_Destination_List_Item == NULL)
+	{
+		LOG_ERROR("Could not allocate list item memory.");
+		return NULL;
+	}
+	
+	// Duplicate fields
+	Pointer_Destination_List_Item->Word_Usage_Statistics = Pointer_Source_List_Item->Word_Usage_Statistics;
+	if (Is_String_Word_Duplicated)
+	{
+		// TODO
+		LOG_ERROR("Not implemented.");
+	}
+	else Pointer_Destination_List_Item->Pointer_String_Word = Pointer_Source_List_Item->Pointer_String_Word;
+	
+	return Pointer_Destination_List_Item;
+}
+
+void WordListRemoveList(TWordList *Pointer_List/*, int Is_String_Word_Removed*/)
+{
+	assert(Pointer_List != NULL);
+	
+	
 }
 
 TWordList *WordListLoadFromFile(char *Pointer_String_File_Name)
