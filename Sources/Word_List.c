@@ -13,55 +13,53 @@
 //-------------------------------------------------------------------------------------------------
 // Public functions
 //-------------------------------------------------------------------------------------------------
-TWordList *WordListGetWordsFromPrefix(TWordList *Pointer_List_Base, wchar_t *Pointer_String_Word_Prefix)
+TWordList *WordListCreate(int Is_Items_String_Word_Shared)
 {
 	TWordList *Pointer_List;
-	TWordListItem *Pointer_List_Base_Item, *Pointer_List_Duplicated_Item;
-	int i, Prefix_Word_Length;
 	
-	assert(Pointer_List_Base != NULL);
-	assert(Pointer_String_Word_Prefix != NULL);
-
-	// Initialize the new list
+	// Allocate list memory
 	Pointer_List = malloc(sizeof(TWordList));
 	if (Pointer_List == NULL)
 	{
 		LOG_ERROR("Could not allocate list memory.");
 		return NULL;
 	}
+	
+	// Initialize relevant internal fields
 	Pointer_List->Items_Count = 0;
-	
-	// Cache prefix word length to avoid computing it several times
-	Prefix_Word_Length = wcslen(Pointer_String_Word_Prefix);
-	LOG_DEBUG("Searched prefix : '%ls', prefix length : %d.", Pointer_String_Word_Prefix, Prefix_Word_Length);
-	
-	// Search in the whole base list for words beginning with the same prefix
-	Pointer_List_Base_Item = Pointer_List_Base->Pointer_First_Item;
-	for (i = 0; i < Pointer_List_Base->Items_Count; i++)
-	{
-		// Is the word matching (do not take characters case into account) ?
-		if (wcsncasecmp(Pointer_List_Base_Item->Pointer_String_Word, Pointer_String_Word_Prefix, Prefix_Word_Length) == 0)
-		{
-			LOG_DEBUG("Found match with word '%ls'.", Pointer_List_Base_Item->Pointer_String_Word);
-			
-			// Duplicate the item but not the word string to save some memory
-			Pointer_List_Duplicated_Item = WordListDuplicateItem(Pointer_List_Base_Item, 0);
-			if (Pointer_List_Duplicated_Item == NULL)
-			{
-				LOG_ERROR("Failed to duplicate item word '%ls'.", Pointer_List_Base_Item->Pointer_String_Word);
-				return NULL;
-			}
-			
-			WordListAppendItem(Pointer_List, Pointer_List_Duplicated_Item);
-		}
-		
-		Pointer_List_Base_Item = Pointer_List_Base_Item->Pointer_Next_Item;
-	}
+	Pointer_List->Is_Items_String_Word_Shared = Is_Items_String_Word_Shared;
 	
 	return Pointer_List;
 }
 
-TWordListItem *WordListDuplicateItem(TWordListItem *Pointer_Source_List_Item, int Is_String_Word_Duplicated)
+void WordListDelete(TWordList *Pointer_List)
+{
+	TWordListItem *Pointer_Current_Item, *Pointer_Next_Item;
+	int i;
+	
+	assert(Pointer_List != NULL);
+	
+	// Remove all items
+	Pointer_Current_Item = Pointer_List->Pointer_First_Item;
+	for (i = 0; i < Pointer_List->Items_Count; i++)
+	{
+		// Keep next item pointer before removing the item to avoid a "use-after-free" problem
+		Pointer_Next_Item = Pointer_Current_Item->Pointer_Next_Item;
+		
+		// Remove word string if required to
+		if (!Pointer_List->Is_Items_String_Word_Shared) free(Pointer_Current_Item->Pointer_String_Word);
+		
+		// Safely remove the current item
+		free(Pointer_Current_Item);
+		
+		Pointer_Current_Item = Pointer_Next_Item;
+	}
+	
+	// Remove the list itself
+	free(Pointer_List);
+}
+
+TWordListItem *WordListDuplicateItem(TWordListItem *Pointer_Source_List_Item, int Is_Item_String_Word_Shared)
 {
 	TWordListItem *Pointer_Destination_List_Item;
 	
@@ -77,21 +75,61 @@ TWordListItem *WordListDuplicateItem(TWordListItem *Pointer_Source_List_Item, in
 	
 	// Duplicate fields
 	Pointer_Destination_List_Item->Word_Usage_Statistics = Pointer_Source_List_Item->Word_Usage_Statistics;
-	if (Is_String_Word_Duplicated)
+	if (Is_Item_String_Word_Shared) Pointer_Destination_List_Item->Pointer_String_Word = Pointer_Source_List_Item->Pointer_String_Word;
+	else
 	{
 		// TODO
 		LOG_ERROR("Not implemented.");
 	}
-	else Pointer_Destination_List_Item->Pointer_String_Word = Pointer_Source_List_Item->Pointer_String_Word;
 	
 	return Pointer_Destination_List_Item;
 }
 
-void WordListRemoveList(TWordList *Pointer_List/*, int Is_String_Word_Removed*/)
+TWordList *WordListGetWordsFromPrefix(TWordList *Pointer_List_Base, wchar_t *Pointer_String_Word_Prefix)
 {
-	assert(Pointer_List != NULL);
+	TWordList *Pointer_List;
+	TWordListItem *Pointer_List_Base_Item, *Pointer_List_Duplicated_Item;
+	int i, Prefix_Word_Length;
 	
+	assert(Pointer_List_Base != NULL);
+	assert(Pointer_String_Word_Prefix != NULL);
+
+	// Initialize the new list
+	Pointer_List = WordListCreate(1);
+	if (Pointer_List == NULL)
+	{
+		LOG_ERROR("Could not create list.");
+		return NULL;
+	}
 	
+	// Cache prefix word length to avoid computing it several times
+	Prefix_Word_Length = wcslen(Pointer_String_Word_Prefix);
+	LOG_DEBUG("Searched prefix : '%ls', prefix length : %d.", Pointer_String_Word_Prefix, Prefix_Word_Length);
+	
+	// Search in the whole base list for words beginning with the same prefix
+	Pointer_List_Base_Item = Pointer_List_Base->Pointer_First_Item;
+	for (i = 0; i < Pointer_List_Base->Items_Count; i++)
+	{
+		// Is the word matching (do not take characters case into account) ?
+		if (wcsncasecmp(Pointer_List_Base_Item->Pointer_String_Word, Pointer_String_Word_Prefix, Prefix_Word_Length) == 0)
+		{
+			LOG_DEBUG("Found match with word '%ls'.", Pointer_List_Base_Item->Pointer_String_Word);
+			
+			// Duplicate the item but not the word string to save some memory
+			Pointer_List_Duplicated_Item = WordListDuplicateItem(Pointer_List_Base_Item, 1);
+			if (Pointer_List_Duplicated_Item == NULL)
+			{
+				LOG_ERROR("Failed to duplicate item word '%ls'.", Pointer_List_Base_Item->Pointer_String_Word);
+				return NULL;
+			}
+			
+			WordListAppendItem(Pointer_List, Pointer_List_Duplicated_Item);
+		}
+		
+		Pointer_List_Base_Item = Pointer_List_Base_Item->Pointer_Next_Item;
+	}
+	
+	return Pointer_List;
 }
 
 TWordList *WordListLoadFromFile(char *Pointer_String_File_Name)
@@ -103,13 +141,12 @@ TWordList *WordListLoadFromFile(char *Pointer_String_File_Name)
 	int Word_Usage_Statistics, Result;
 	
 	// Initialize the new list
-	Pointer_List = malloc(sizeof(TWordList));
+	Pointer_List = WordListCreate(0);
 	if (Pointer_List == NULL)
 	{
 		LOG_ERROR("Could not allocate list memory.");
 		return NULL;
 	}
-	Pointer_List->Items_Count = 0;
 	
 	// Try to open the file
 	Pointer_File = fopen(Pointer_String_File_Name, "r");
